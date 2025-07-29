@@ -36,21 +36,22 @@
     <input type="text" id="asesor" placeholder="Nombre del Asesor" />
   </div>
 
-  <select id="marca">
-  <option value="">Cargando marcas...</option>
-</select>
+
+<input type="text" id="marca" list="marcas" placeholder="Marca" autocomplete="off" />
+<datalist id="marcas">
+  <option value="Cargando marcas...">
+</datalist>
 
 <script>
   fetch('marcas.php')
     .then(res => res.json())
     .then(marcas => {
-      const select = document.getElementById('marca');
-      select.innerHTML = '<option value="">Selecciona una marca</option>';
+      const datalist = document.getElementById('marcas');
+      datalist.innerHTML = '';
       marcas.forEach(marca => {
         const option = document.createElement('option');
-        option.value = marca.id; 
-        option.textContent = marca.nombre; 
-        select.appendChild(option);
+        option.value = marca.nombre;
+        datalist.appendChild(option);
       });
     })
     .catch(err => {
@@ -108,7 +109,7 @@
       const solicitante = document.getElementById('solicitante').value;
       const asesor = document.getElementById('asesor').value;
       const marcaSelect = document.getElementById('marca');
-const marca = marcaSelect.options[marcaSelect.selectedIndex].text;
+      const marca = document.getElementById('marca').value;
       const submarca = document.getElementById('submarca').value;
       const anio = document.getElementById('anio').value;
       const seguro = document.getElementById('seguro').value;
