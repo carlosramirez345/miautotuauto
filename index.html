@@ -120,11 +120,16 @@ if (isNaN(valor) || isNaN(anticipo) || isNaN(meses)) {
   alert("Por favor completa todos los campos correctamente.");
   return;
 }
+const porcentajeAnticipo = anticipo / valor;
+let aperturaInicial;
 
-let aperturaInicial = valor * 0.08;
-if (aperturaInicial < 15500) {
+if (porcentajeAnticipo > 0.20) {
   aperturaInicial = 15500;
+} else {
+  aperturaInicial = valor * 0.08;
+  if (aperturaInicial < 15500) aperturaInicial = 15500;
 }
+// ...resto del código...
 let monto;
 if (anticipo <= 0) {
   monto = valor;
