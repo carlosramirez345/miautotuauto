@@ -49,7 +49,16 @@
     .summary p { margin: 5px 0; }
     .header { display: flex; align-items: center; gap: 20px; justify-content: center; }
     .logo { height: 60px; }
-    #descargarBtn { margin-top: 20px; display: none; }
+    #descargarBtn { margin-top: 20px; display: none;
+     }
+    .financiamiento-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
   </style>
 </head>
 <body>
@@ -95,16 +104,17 @@
     </select>
   </div>
 
-  <form onsubmit="event.preventDefault(); calcular();">
+    <form onsubmit="event.preventDefault(); calcular();">
     <h2>Financiamiento</h2>
-    <input type="number" id="valor" placeholder="Valor del auto ($)" />
-    <input type="number" id="anticipo" placeholder="Anticipo ($)" />
-    <input type="number" id="plazo" placeholder="Plazo (meses)" />
-    <input type="text" value="9.79%" readonly placeholder="% Int. Anual" />
-    <input type="text" value="0.8159%" readonly placeholder="% Int. Mensual" />
+    <div class="financiamiento-row">
+      <input type="number" id="valor" placeholder="Valor del auto ($)" />
+      <input type="number" id="anticipo" placeholder="Anticipo ($)" />
+      <input type="number" id="plazo" placeholder="Plazo (meses)" />
+      <input type="text" value="9.79%" readonly placeholder="% Int. Anual" />
+      <input type="text" value="0.8159%" readonly placeholder="% Int. Mensual" />
+    </div>
     <button type="submit">Calcular tabla</button>
-  <button type="button" id="descargarBtn" onclick="descargarPDF()">Descargar PDF</button>
-    <button id="descargarBtn" onclick="descargarPDF()">Descargar PDF</button>
+    <button type="button" id="descargarBtn" onclick="descargarPDF()">Descargar PDF</button>
   </form>
 
   <div style="text-align:center;margin-bottom:20px;">
@@ -156,7 +166,7 @@ if (porcentajeAnticipo > 0.20) {
   aperturaInicial = valor * 0.08;
   if (aperturaInicial < 15500) aperturaInicial = 15500;
 }
-// ...resto del código...
+
 let monto;
 if (anticipo <= 0) {
   monto = valor;
@@ -215,7 +225,7 @@ const porcentaje75 = valor * 0.75;
       document.getElementById('descargarBtn').style.display = 'inline-block';
     }
 
- // ...existing code...
+
 async function descargarPDF() {
   const { jsPDF } = window.jspdf;
 
@@ -276,9 +286,7 @@ async function descargarPDF() {
   // 4. Oculta el contenedor PDF después de generar el PDF
   pdfContent.style.display = "none";
 }
-// ...existing code...
 
   </script>
 </body>
 </html>
-
