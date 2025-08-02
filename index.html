@@ -160,11 +160,10 @@ if (isNaN(valor) || isNaN(anticipo) || isNaN(meses)) {
 const porcentajeAnticipo = anticipo / valor;
 let aperturaInicial;
 
-if (porcentajeAnticipo > 0.20) {
+if (porcentajeAnticipo >= 0.20) {
   aperturaInicial = 15500;
 } else {
   aperturaInicial = valor * 0.08;
-  if (aperturaInicial < 15500) aperturaInicial = 15500;
 }
 
 let monto;
@@ -290,3 +289,4 @@ async function descargarPDF() {
   </script>
 </body>
 </html>
+
