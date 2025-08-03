@@ -163,9 +163,17 @@ let aperturaInicial;
 if (porcentajeAnticipo >= 0.20) {
   aperturaInicial = 15500;
 } else {
-  aperturaInicial = valor * 0.08;
+  let aperturaCalculada = valor * 0.08;
+  // Si la apertura está entre 15501 y 20000, preguntar al usuario si quiere 15500
+  if (aperturaCalculada >= 15501 && aperturaCalculada <= 20000) {
+    const usar15500 = confirm(
+      `La apertura inicial calculada es $${aperturaCalculada.toFixed(2)}.\n¿Deseas cambiarla a $15,500?`
+    );
+    aperturaInicial = usar15500 ? 15500 : aperturaCalculada;
+  } else {
+    aperturaInicial = aperturaCalculada;
+  }
 }
-
 let monto;
 if (anticipo <= 0) {
   monto = valor;
@@ -289,4 +297,5 @@ async function descargarPDF() {
   </script>
 </body>
 </html>
+
 
