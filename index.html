@@ -140,7 +140,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    function calcular() {
+    function calcular(){
       const solicitante = document.getElementById('solicitante').value;
       const asesor = document.getElementById('asesor').value;
       const marcaSelect = document.getElementById('marca');
@@ -226,10 +226,12 @@ const porcentaje75 = valor * 0.75;
       }
       tabla += '</table>';
 
-      console.log({resumen, tabla});
-      document.getElementById('descargarBtn').style.display = 'inline-block';
-    }
+console.log({resumen, tabla});
 
+// INSERTAR el contenido en el DOM:
+document.getElementById("resultado").innerHTML = resumen + tabla;
+
+document.getElementById('descargarBtn').style.display = 'inline-block';
 async function descargarPDF() {
   const { jsPDF } = window.jspdf;
 
@@ -253,27 +255,23 @@ async function descargarPDF() {
     </div>
   `;
 
-  const resultadoHTML = document.getElementById('resultado').innerHTML;
   const pdfContent = document.getElementById("pdfContent");
-
-  // Limpia y prepara el contenido
-  pdfContent.innerHTML = "";
+  pdfContent.innerHTML = ""; // Limpiar
   pdfContent.style.display = "block";
 
-  // Crea y agrega el encabezado
+  // Añadir encabezado renderizado
   const headerContainer = document.createElement("div");
   headerContainer.innerHTML = pdfHeader;
   pdfContent.appendChild(headerContainer);
 
-  // Crea y agrega el contenido del resultado (resumen + tabla)
-  const resultadoContainer = document.createElement("div");
-  resultadoContainer.innerHTML = resultadoHTML;
-  pdfContent.appendChild(resultadoContainer);
+  // Clonar el contenido que ya está renderizado en el DOM
+  const resultadoOriginal = document.getElementById('resultado');
+  const resultadoClonado = resultadoOriginal.cloneNode(true);
+  pdfContent.appendChild(resultadoClonado);
 
-  // Espera que el DOM lo renderice completamente
+  // Espera a que todo se renderice
   await new Promise(resolve => setTimeout(resolve, 100));
 
-  // Captura como imagen
   const canvas = await html2canvas(pdfContent, {
     scale: 2,
     useCORS: true
@@ -287,11 +285,9 @@ async function descargarPDF() {
   const imgWidth = pageWidth - 40;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-  // Si la imagen cabe en una página
   if (imgHeight < pageHeight - 40) {
     pdf.addImage(imgData, "PNG", 20, 20, imgWidth, imgHeight);
   } else {
-    // Si es más grande, divide en varias páginas
     let y = 0;
     while (y < imgHeight) {
       pdf.addImage(imgData, "PNG", 20, 20 - y, imgWidth, imgHeight);
