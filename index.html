@@ -23,7 +23,7 @@
       width: 200px;
       border-radius: 10px;
       border: 1px solid #ccc;
-      text-align: center;
+      text-align: center; 
     }
     table {
       border-collapse: collapse;
@@ -226,10 +226,9 @@ const porcentaje75 = valor * 0.75;
       }
       tabla += '</table>';
 
-      document.getElementById('resultado').innerHTML = resumen + tabla;
+      console.log({resumen, tabla});
       document.getElementById('descargarBtn').style.display = 'inline-block';
     }
-
 
 async function descargarPDF() {
   const { jsPDF } = window.jspdf;
@@ -249,16 +248,32 @@ async function descargarPDF() {
         margin-top:10px;
         letter-spacing:1px;
       ">
-        Mi Auto Tu Auto Mas Facil
+        Mi Auto Tu Auto Mas Fácil
       </div>
     </div>
   `;
 
-  const resultado = document.getElementById('resultado').innerHTML;
+  const resultadoHTML = document.getElementById('resultado').innerHTML;
   const pdfContent = document.getElementById("pdfContent");
-  pdfContent.innerHTML = pdfHeader + resultado;
+
+  // Limpia y prepara el contenido
+  pdfContent.innerHTML = "";
   pdfContent.style.display = "block";
-  
+
+  // Crea y agrega el encabezado
+  const headerContainer = document.createElement("div");
+  headerContainer.innerHTML = pdfHeader;
+  pdfContent.appendChild(headerContainer);
+
+  // Crea y agrega el contenido del resultado (resumen + tabla)
+  const resultadoContainer = document.createElement("div");
+  resultadoContainer.innerHTML = resultadoHTML;
+  pdfContent.appendChild(resultadoContainer);
+
+  // Espera que el DOM lo renderice completamente
+  await new Promise(resolve => setTimeout(resolve, 100));
+
+  // Captura como imagen
   const canvas = await html2canvas(pdfContent, {
     scale: 2,
     useCORS: true
@@ -268,30 +283,27 @@ async function descargarPDF() {
   const pdf = new jsPDF("p", "pt", "a4");
 
   const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
   const imgWidth = pageWidth - 40;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-  if (imgHeight < pdf.internal.pageSize.getHeight() - 40) {
+  // Si la imagen cabe en una página
+  if (imgHeight < pageHeight - 40) {
     pdf.addImage(imgData, "PNG", 20, 20, imgWidth, imgHeight);
   } else {
+    // Si es más grande, divide en varias páginas
     let y = 0;
-    let pageHeight = pdf.internal.pageSize.getHeight();
     while (y < imgHeight) {
       pdf.addImage(imgData, "PNG", 20, 20 - y, imgWidth, imgHeight);
       y += pageHeight;
       if (y < imgHeight) pdf.addPage();
     }
   }
-  pdf.save("TABLA DE AMORTIZACION MI AUTO.pdf");
+
+  pdf.save("TABLA_DE_AMORTIZACION_MI_AUTO.pdf");
+
   pdfContent.style.display = "none";
 }
-  </script>
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
