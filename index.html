@@ -107,12 +107,13 @@
     <form onsubmit="event.preventDefault(); calcular();">
     <h2>Financiamiento</h2>
     <div class="financiamiento-row">
-      <input type="number" id="valor" placeholder="Valor del auto ($)" />
-      <input type="number" id="anticipo" placeholder="Anticipo ($)" />
-      <input type="number" id="plazo" placeholder="Plazo (meses)" />
-      <input type="text" value="9.79%" readonly placeholder="% Int. Anual" />
-      <input type="text" value="0.8159%" readonly placeholder="% Int. Mensual" />
-    </div>
+  <input type="number" id="valor" placeholder="Valor del auto ($)" />
+  <input type="number" id="anticipo" placeholder="Anticipo ($)" />
+  <input type="number" id="plazo" placeholder="Plazo (meses)" />
+  <input type="text" value="9.79%" readonly placeholder="% Int. Anual" />
+  <input type="text" value="0.8159%" readonly placeholder="% Int. Mensual" />
+  <input type="number" id="apertura" placeholder="Apertura inicial ($)" min="0" />
+</div>
     <button type="submit">Calcular tabla</button>
     <button type="button" id="descargarBtn" onclick="descargarPDF()">Descargar PDF</button>
   </form>
@@ -140,99 +141,105 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    function calcular(){
-      const solicitante = document.getElementById('solicitante').value;
-      const asesor = document.getElementById('asesor').value;
-      const marcaSelect = document.getElementById('marca');
-      const marca = document.getElementById('marca').value;
-      const submarca = document.getElementById('submarca').value;
-      const anio = document.getElementById('anio').value;
-      const seguro = document.getElementById('seguro').value;
-      const valor = parseFloat(document.getElementById('valor').value);
-const anticipo = parseFloat(document.getElementById('anticipo').value);
-const meses = parseInt(document.getElementById('plazo').value);
+   // ...existing code...
 
-if (isNaN(valor) || isNaN(anticipo) || isNaN(meses)) {
-  alert("Por favor completa todos los campos correctamente.");
-  return;
-}
-const porcentajeAnticipo = anticipo / valor;
-let aperturaInicial;
+function sugerirApertura() {
+  const valor = parseFloat(document.getElementById('valor').value);
+  const anticipo = parseFloat(document.getElementById('anticipo').value);
 
-if (porcentajeAnticipo >= 0.20) {
-  aperturaInicial = 15500;
-} else {
-  let aperturaCalculada = valor * 0.08;
-  if (aperturaCalculada <= 20000) {
-    const usar15500 = confirm(
-      `La apertura inicial calculada es $${aperturaCalculada.toFixed(2)}.\n¿Deseas cambiarla a $15,500?`
-    );
-    aperturaInicial = usar15500 ? 15500 : aperturaCalculada;
-  } else {
-    aperturaInicial = aperturaCalculada;
+  if (isNaN(valor) || isNaN(anticipo) || valor <= 0) {
+    document.getElementById('apertura').value = '';
+    return;
   }
+  const porcentajeAnticipo = anticipo / valor;
+  let aperturaInicial;
+  if (porcentajeAnticipo >= 0.20) {
+    aperturaInicial = 15500;
+  } else {
+    let aperturaCalculada = valor * 0.08;
+    aperturaInicial = aperturaCalculada <= 20000 ? 15500 : aperturaCalculada;
+  }
+  document.getElementById('apertura').value = aperturaInicial.toFixed(2);
 }
-let monto;
-if (anticipo <= 0) {
-  monto = valor;
-} else {
-  monto = valor - anticipo + aperturaInicial;
+
+// Actualiza sugerencia cuando cambian valor o anticipo
+document.getElementById('valor').addEventListener('input', sugerirApertura);
+document.getElementById('anticipo').addEventListener('input', sugerirApertura);
+
+function calcular(){
+  const solicitante = document.getElementById('solicitante').value;
+  const asesor = document.getElementById('asesor').value;
+  const marca = document.getElementById('marca').value;
+  const submarca = document.getElementById('submarca').value;
+  const anio = document.getElementById('anio').value;
+  const seguro = document.getElementById('seguro').value;
+  const valor = parseFloat(document.getElementById('valor').value);
+  const anticipo = parseFloat(document.getElementById('anticipo').value);
+  const meses = parseInt(document.getElementById('plazo').value);
+  const aperturaInicial = parseFloat(document.getElementById('apertura').value);
+
+  if (isNaN(valor) || isNaN(anticipo) || isNaN(meses) || isNaN(aperturaInicial)) {
+    alert("Por favor completa todos los campos correctamente.");
+    return;
+  }
+
+  let monto;
+  if (anticipo <= 0) {
+    monto = valor;
+  } else {
+    monto = valor - anticipo + aperturaInicial;
+  }
+  const amortizacion = monto / meses;
+  const interes = (monto * 0.008159) / 1.16;
+  const ivaInteres = interes * 0.16;
+  const interesMensual = interes + ivaInteres;
+  const interesAnual = interesMensual * 12;
+  const porcentaje75 = valor * 0.75;
+
+  let saldo = monto;
+
+  let resumen = `<div class="summary" id="resumen">
+    <h2>Resumen Financiero</h2>
+    <p><strong>Solicitante:</strong> ${solicitante}</p>
+    <p><strong>Asesor:</strong> ${asesor}</p>
+    <p><strong>Marca:</strong> ${marca}</p>
+    <p><strong>Submarca:</strong> ${submarca}</p>
+    <p><strong>Año:</strong> ${anio}</p>
+    <p><strong>Cobertura:</strong> ${seguro}</p>
+    <p><strong>Valor del auto:</strong> $${valor.toFixed(2)}</p>
+    <p><strong>Anticipo:</strong> $${anticipo.toFixed(2)}</p>
+    <p><strong>Valor financiado:</strong> $${monto.toFixed(2)}</p>
+    <p><strong>Plazo:</strong> ${meses} meses</p>
+    <p><strong>% Int. Anual:</strong> 9.79%</p>
+    <p><strong>% Int. Mensual:</strong> 0.8159%</p>
+    <p><strong>Apertura inicial:</strong> $${aperturaInicial.toFixed(2)}</p>
+    <p><strong>75% del valor del auto:</strong> $${porcentaje75.toFixed(2)}</p>
+    <p><strong>Interés mensual (incluye IVA):</strong> $${interesMensual.toFixed(2)}</p>
+    <p><strong>Interés anual:</strong> $${interesAnual.toFixed(2)}</p>
+  </div>`;
+
+  let tabla = `<h2 id="tablaHeader">Tabla de Amortización</h2>`;
+  tabla += `<table id="tabla"><tr><th>Mes</th><th>Adeudo</th><th>Interés</th><th>IVA Int. (16%)</th><th>Amortización</th><th>Mensualidad</th><th>Pago Diario</th></tr>`;
+
+  for (let i = 1; i <= meses; i++) {
+    const mensualidad = interes + ivaInteres + amortizacion;
+    const pagoDiario = mensualidad / 30;
+    saldo = saldo - amortizacion;
+    tabla += `<tr>
+      <td>${i}</td>
+      <td>$${(saldo + amortizacion).toFixed(2)}</td>
+      <td>$${interes.toFixed(2)}</td>
+      <td>$${ivaInteres.toFixed(2)}</td>
+      <td>$${amortizacion.toFixed(2)}</td>
+      <td>$${mensualidad.toFixed(2)}</td>
+      <td>$${pagoDiario.toFixed(2)}</td>
+    </tr>`;
+  }
+  tabla += '</table>';
+
+  document.getElementById("resultado").innerHTML = resumen + tabla;
+  document.getElementById('descargarBtn').style.display = 'inline-block';
 }
-const amortizacion = monto / meses;
-const interes = (monto * 0.008159) / 1.16;
-const ivaInteres = interes * 0.16;
-const interesMensual = interes + ivaInteres;
-const interesAnual = interesMensual * 12;
-const porcentaje75 = valor * 0.75;
-
-      let saldo = monto;
-
-      let resumen = `<div class="summary" id="resumen">
-  <h2>Resumen Financiero</h2>
-  <p><strong>Solicitante:</strong> ${solicitante}</p>
-  <p><strong>Asesor:</strong> ${asesor}</p>
-  <p><strong>Marca:</strong> ${marca}</p>
-  <p><strong>Submarca:</strong> ${submarca}</p>
-  <p><strong>Año:</strong> ${anio}</p>
-  <p><strong>Cobertura:</strong> ${seguro}</p>
-  <p><strong>Valor del auto:</strong> $${valor.toFixed(2)}</p>
-  <p><strong>Anticipo:</strong> $${anticipo.toFixed(2)}</p>
-  <p><strong>Valor financiado:</strong> $${monto.toFixed(2)}</p>
-  <p><strong>Plazo:</strong> ${meses} meses</p>
-  <p><strong>% Int. Anual:</strong> 9.79%</p>
-  <p><strong>% Int. Mensual:</strong> 0.8159%</p>
-  <p><strong>Apertura inicial:</strong> $${aperturaInicial.toFixed(2)}</p>
-  <p><strong>75% del valor del auto:</strong> $${porcentaje75.toFixed(2)}</p>
-  <p><strong>Interés mensual (incluye IVA):</strong> $${interesMensual.toFixed(2)}</p>
-  <p><strong>Interés anual:</strong> $${interesAnual.toFixed(2)}</p>
-</div>`;
-
-      let tabla = `<h2 id="tablaHeader">Tabla de Amortización</h2>`;
-      tabla += `<table id="tabla"><tr><th>Mes</th><th>Adeudo</th><th>Interés</th><th>IVA Int. (16%)</th><th>Amortización</th><th>Mensualidad</th><th>Pago Diario</th></tr>`;
-
-      for (let i = 1; i <= meses; i++) {
-        const mensualidad = interes + ivaInteres + amortizacion;
-        const pagoDiario = mensualidad / 30;
-        saldo = saldo - amortizacion;
-        tabla += `<tr>
-          <td>${i}</td>
-          <td>$${(saldo + amortizacion).toFixed(2)}</td>
-          <td>$${interes.toFixed(2)}</td>
-          <td>$${ivaInteres.toFixed(2)}</td>
-          <td>$${amortizacion.toFixed(2)}</td>
-          <td>$${mensualidad.toFixed(2)}</td>
-          <td>$${pagoDiario.toFixed(2)}</td>
-        </tr>`;
-      }
-      tabla += '</table>';
-
-console.log({resumen, tabla});
-
-// INSERTAR el contenido en el DOM:
-document.getElementById("resultado").innerHTML = resumen + tabla;
-
-document.getElementById('descargarBtn').style.display = 'inline-block';
-    }
 async function descargarPDF() {
   const { jsPDF } = window.jspdf;
 
@@ -260,17 +267,13 @@ async function descargarPDF() {
   pdfContent.innerHTML = ""; // Limpiar
   pdfContent.style.display = "block";
 
-  // Añadir encabezado renderizado
   const headerContainer = document.createElement("div");
   headerContainer.innerHTML = pdfHeader;
   pdfContent.appendChild(headerContainer);
 
-  // Clonar el contenido que ya está renderizado en el DOM
-  const resultadoOriginal = document.getElementById('resultado');
-  const resultadoClonado = resultadoOriginal.cloneNode(true);
+   const resultadoClonado = resultadoOriginal.cloneNode(true);
   pdfContent.appendChild(resultadoClonado);
 
-  // Espera a que todo se renderice
   await new Promise(resolve => setTimeout(resolve, 100));
 
   const canvas = await html2canvas(pdfContent, {
@@ -304,5 +307,3 @@ async function descargarPDF() {
 </script>
 </body>
 </html>
-
-
